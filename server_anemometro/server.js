@@ -123,6 +123,14 @@ app.get('/api/lecturas/ultima', async (req, res) => {
 });
 
 // ============================================================
+//  DELETE /api/lecturas/limpiar  — limpia lecturas con periodo_s < 0.1
+// ============================================================
+app.delete('/api/lecturas/limpiar', verificarApiKey, async (req, res) => {
+  const { rowCount } = await pool.query('DELETE FROM lecturas WHERE periodo_s < 0.1');
+  res.json({ ok: true, eliminadas: rowCount });
+});
+
+// ============================================================
 //  GET /api/status  — salud del servicio
 // ============================================================
 app.get('/api/status', async (req, res) => {
