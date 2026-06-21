@@ -641,6 +641,39 @@
       border: 1px solid rgba(226, 115, 90, 0.5);
     }
 
+    .hli-badge.idle {
+      background: rgba(138, 160, 166, 0.14);
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+
+    .cow-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .cow-face-box {
+      position: relative;
+      width: 84px;
+      height: 84px;
+    }
+
+    .cow-state {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 84px;
+      height: 84px;
+    }
+
+    .cow-state.active {
+      display: block;
+    }
+
     @media (max-width:640px) {
       .hero {
         grid-template-columns: 1fr;
@@ -769,7 +802,7 @@
         </div>
         <div class="flow-arrow">→</div>
         <div class="flow-node ws">
-          <span class="tag">Viento real · en vivo</span>
+          <span class="tag">Viento real · prom. 5 lecturas</span>
           <span class="big" id="hliWS">-- m/s</span>
         </div>
         <div class="flow-arrow">→</div>
@@ -789,8 +822,9 @@
         Si BGT ≥ 25°C&nbsp;&nbsp;HLI = 8.62 + 0.38·HR + 1.55·BGT − 0.5·<span class="ws-hl">WS</span> +
         e<sup>(2.4−WS)</sup>
         <span class="note">WS = viento (m/s, tu anemómetro) · HR = humedad relativa (%) · BGT = temp. de globo negro
-          (°C) — Gaughan et al., 2008. Umbral de alerta calibrado para Bos indicus (Nelore), raza dominante en el hato
-          cruceño.</span>
+          (°C) — Gaughan et al., 2008. Umbral oficial de ganancia de calor para Bos indicus 100% (Nelore): HLI
+          96. La franja 75–96 es un margen de alerta temprana propio del proyecto, antes de alcanzar el umbral
+          validado por el paper.</span>
       </div>
 
       <div class="hli-controls">
@@ -807,12 +841,84 @@
       </div>
 
       <div class="hli-result">
+        <div class="cow-wrap">
+          <p class="eyebrow" style="margin-bottom:0;">Estado del hato</p>
+          <div class="cow-face-box">
+            <svg id="cowIdle" class="cow-state active" viewBox="0 0 100 100">
+              <circle cx="50" cy="52" r="44" fill="var(--muted)" opacity="0.14" />
+              <ellipse cx="20" cy="34" rx="9" ry="13" fill="var(--gold)" transform="rotate(-25 20 34)" />
+              <ellipse cx="80" cy="34" rx="9" ry="13" fill="var(--gold)" transform="rotate(25 80 34)" />
+              <ellipse cx="50" cy="56" rx="32" ry="28" fill="var(--paper)" stroke="var(--line)" stroke-width="2" />
+              <ellipse cx="26" cy="38" rx="8" ry="6" fill="var(--bg)" opacity="0.85" transform="rotate(-20 26 38)" />
+              <ellipse cx="72" cy="60" rx="7" ry="9" fill="var(--bg)" opacity="0.85" transform="rotate(15 72 60)" />
+              <ellipse cx="50" cy="78" rx="18" ry="13" fill="var(--panel-soft)" stroke="var(--line)" stroke-width="1.5" />
+              <ellipse cx="44" cy="74" rx="2.2" ry="3" fill="var(--bg)" />
+              <ellipse cx="56" cy="74" rx="2.2" ry="3" fill="var(--bg)" />
+              <path d="M26 50 q6 4 12 0" fill="none" stroke="var(--bg)" stroke-width="2.5" stroke-linecap="round" />
+              <path d="M62 50 q6 4 12 0" fill="none" stroke="var(--bg)" stroke-width="2.5" stroke-linecap="round" />
+              <path d="M44 85 h12" fill="none" stroke="var(--bg)" stroke-width="2.5" stroke-linecap="round" />
+              <text x="78" y="20" font-family="monospace" font-size="10" fill="var(--muted)">z</text>
+              <text x="86" y="11" font-family="monospace" font-size="13" fill="var(--muted)">Z</text>
+            </svg>
+            <svg id="cowSafe" class="cow-state" viewBox="0 0 100 100">
+              <circle cx="50" cy="52" r="44" fill="var(--sage)" opacity="0.16" />
+              <ellipse cx="20" cy="34" rx="9" ry="13" fill="var(--gold)" transform="rotate(-25 20 34)" />
+              <ellipse cx="80" cy="34" rx="9" ry="13" fill="var(--gold)" transform="rotate(25 80 34)" />
+              <ellipse cx="50" cy="56" rx="32" ry="28" fill="var(--paper)" stroke="var(--line)" stroke-width="2" />
+              <ellipse cx="26" cy="38" rx="8" ry="6" fill="var(--bg)" opacity="0.85" transform="rotate(-20 26 38)" />
+              <ellipse cx="72" cy="60" rx="7" ry="9" fill="var(--bg)" opacity="0.85" transform="rotate(15 72 60)" />
+              <ellipse cx="50" cy="78" rx="18" ry="13" fill="var(--panel-soft)" stroke="var(--line)" stroke-width="1.5" />
+              <ellipse cx="44" cy="74" rx="2.2" ry="3" fill="var(--bg)" />
+              <ellipse cx="56" cy="74" rx="2.2" ry="3" fill="var(--bg)" />
+              <path d="M30 50 q5 -8 10 0" fill="none" stroke="var(--bg)" stroke-width="3" stroke-linecap="round" />
+              <path d="M60 50 q5 -8 10 0" fill="none" stroke="var(--bg)" stroke-width="3" stroke-linecap="round" />
+              <path d="M41 84 q9 5 18 0" fill="none" stroke="var(--bg)" stroke-width="2.6" stroke-linecap="round" />
+            </svg>
+            <svg id="cowWatch" class="cow-state" viewBox="0 0 100 100">
+              <circle cx="50" cy="52" r="44" fill="var(--gold)" opacity="0.16" />
+              <ellipse cx="20" cy="34" rx="9" ry="13" fill="var(--gold)" transform="rotate(-25 20 34)" />
+              <ellipse cx="80" cy="34" rx="9" ry="13" fill="var(--gold)" transform="rotate(25 80 34)" />
+              <ellipse cx="50" cy="56" rx="32" ry="28" fill="var(--paper)" stroke="var(--line)" stroke-width="2" />
+              <ellipse cx="26" cy="38" rx="8" ry="6" fill="var(--bg)" opacity="0.85" transform="rotate(-20 26 38)" />
+              <ellipse cx="72" cy="60" rx="7" ry="9" fill="var(--bg)" opacity="0.85" transform="rotate(15 72 60)" />
+              <ellipse cx="50" cy="78" rx="18" ry="13" fill="var(--panel-soft)" stroke="var(--line)" stroke-width="1.5" />
+              <ellipse cx="44" cy="74" rx="2.2" ry="3" fill="var(--bg)" />
+              <ellipse cx="56" cy="74" rx="2.2" ry="3" fill="var(--bg)" />
+              <path d="M24 40 L34 36" fill="none" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round" />
+              <path d="M76 40 L66 36" fill="none" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round" />
+              <circle cx="32" cy="50" r="3" fill="var(--bg)" />
+              <circle cx="68" cy="50" r="3" fill="var(--bg)" />
+              <path d="M41 85 q9 2 18 0" fill="none" stroke="var(--bg)" stroke-width="2.6" stroke-linecap="round" />
+              <path d="M70 18 C 73 24, 73 28, 70 30 C 67 28, 67 24, 70 18 Z" fill="var(--cyan)" opacity="0.85" />
+            </svg>
+            <svg id="cowDanger" class="cow-state" viewBox="0 0 100 100">
+              <circle cx="50" cy="52" r="44" fill="var(--danger)" opacity="0.16" />
+              <ellipse cx="20" cy="34" rx="9" ry="13" fill="var(--gold)" transform="rotate(-25 20 34)" />
+              <ellipse cx="80" cy="34" rx="9" ry="13" fill="var(--gold)" transform="rotate(25 80 34)" />
+              <ellipse cx="50" cy="56" rx="32" ry="28" fill="var(--paper)" stroke="var(--line)" stroke-width="2" />
+              <ellipse cx="26" cy="38" rx="8" ry="6" fill="var(--bg)" opacity="0.85" transform="rotate(-20 26 38)" />
+              <ellipse cx="72" cy="60" rx="7" ry="9" fill="var(--bg)" opacity="0.85" transform="rotate(15 72 60)" />
+              <ellipse cx="50" cy="78" rx="18" ry="13" fill="var(--panel-soft)" stroke="var(--line)" stroke-width="1.5" />
+              <ellipse cx="44" cy="74" rx="2.2" ry="3" fill="var(--bg)" />
+              <ellipse cx="56" cy="74" rx="2.2" ry="3" fill="var(--bg)" />
+              <path d="M24 34 L36 40" fill="none" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round" />
+              <path d="M76 34 L64 40" fill="none" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round" />
+              <path d="M28 48 q5 8 10 0" fill="none" stroke="var(--bg)" stroke-width="3" stroke-linecap="round" />
+              <path d="M62 48 q5 8 10 0" fill="none" stroke="var(--bg)" stroke-width="3" stroke-linecap="round" />
+              <ellipse cx="50" cy="85" rx="9" ry="6" fill="var(--bg)" />
+              <path d="M44 89 q6 12 12 0 q-6 3 -12 0 Z" fill="var(--danger)" />
+              <path d="M28 16 C 31 22, 31 26, 28 28 C 25 26, 25 22, 28 16 Z" fill="var(--cyan)" opacity="0.85" />
+              <path d="M72 16 C 75 22, 75 26, 72 28 C 69 26, 69 22, 72 16 Z" fill="var(--cyan)" opacity="0.85" />
+            </svg>
+          </div>
+        </div>
         <div>
           <p class="eyebrow" style="margin-bottom:4px;">HLI calculado</p>
           <div class="hli-number"><span id="hliValue">--</span><span class="u">índice</span></div>
         </div>
-        <div id="hliBadge" class="hli-badge safe">Esperando datos</div>
+        <div id="hliBadge" class="hli-badge idle">Esperando datos</div>
       </div>
+
     </div>
 
     <!-- ERROR / EMPTY STATE -->
@@ -1040,7 +1146,9 @@
 
     function actualizarHLI() {
       if (state.data.length === 0) return;
-      const ws = state.data[state.data.length - 1].v_real_m_s;
+      const N = Math.min(5, state.data.length);
+      const recientes = state.data.slice(-N);
+      const ws = recientes.reduce((sum, d) => sum + d.v_real_m_s, 0) / N;
       const bgt = parseFloat(document.getElementById('bgtInput').value);
       const rh = parseFloat(document.getElementById('rhInput').value);
 
@@ -1061,7 +1169,9 @@
       badge.textContent = texto + ' · HLI ' + hli.toFixed(1);
       document.getElementById('hliAlertaMini').textContent = texto;
 
-
+      const cowMap = { safe: 'cowSafe', watch: 'cowWatch', danger: 'cowDanger' };
+      document.querySelectorAll('.cow-state').forEach(el => el.classList.remove('active'));
+      document.getElementById(cowMap[kind]).classList.add('active');
     }
 
     async function fetchData() {
