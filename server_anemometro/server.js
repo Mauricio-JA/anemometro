@@ -37,6 +37,9 @@ async function initDB() {
         recibido_en TIMESTAMPTZ DEFAULT NOW()
       )
     `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_lecturas_recibido_en ON lecturas (recibido_en)
+    `);
     console.log('Tabla lecturas inicializada correctamente');
   } finally {
     client.release();
@@ -90,7 +93,24 @@ app.post('/api/lecturas', verificarApiKey, async (req, res) => {
 // ============================================================
 app.get('/api/lecturas', async (req, res) => {
   const limite = Math.min(parseInt(req.query.limit, 10) || 100, 1000);
-  const { rows } = await pool.query('SELECT * FROM lecturas ORDER BY id DESC LIMIT $1', [limite]);
+  const desde = req.query.desde;
+  const hasta = req.query.hasta;
+
+  if (desde !== undefined) {
+    if (isNaN(new Date(desde).getTime())) {
+      return res.status(400).json({ error: 'Parametro desde invalido. Debe ser ISO 8601.' });
+    }
+  }
+  if (hasta !== undefined) {
+    if (isNaN(new Date(hasta).getTime())) {
+      return res.status(400).json({ error: 'Parametro hasta invalido. Debe ser ISO 8601.' });
+    }
+  }
+
+  const { rows } = await pool.query(
+    'SELECT * FROM lecturas WHERE ($2::timestamptz IS NULL OR recibido_en >= $2::timestamptz) AND ($3::timestamptz IS NULL OR recibido_en <= $3::timestamptz) ORDER BY id DESC LIMIT $1',
+    [limite, desde || null, hasta || null]
+  );
   res.json(rows.reverse());
 });
 
