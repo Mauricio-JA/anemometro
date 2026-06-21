@@ -376,6 +376,24 @@
       border-color: var(--cyan);
     }
 
+    .page-info {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      padding: 0 12px;
+    }
+    .page-btn[disabled] {
+      opacity: .35;
+      cursor: not-allowed;
+    }
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 16px 0 4px;
+    }
+
     canvas {
       max-height: 280px;
     }
@@ -589,6 +607,7 @@
           </thead>
           <tbody id="tableBody"></tbody>
         </table>
+        <div class="pagination" id="tablePagination"></div>
       </div>
     </div>
 
@@ -604,7 +623,9 @@
       timer: null,
       metric: 'km_h',
       timeRange: 'all',
-      data: []
+      data: [],
+      tablePage: 1,
+      tablePageSize: 25,
     };
 
     const METRIC_META = {
@@ -741,7 +762,11 @@
 
     function renderTable() {
       const tbody = document.getElementById('tableBody');
-      const rows = state.timeRange === 'all' ? state.data.slice(-25).slice().reverse() : state.data.slice().reverse();
+      const pageCount = Math.ceil(state.data.length / state.tablePageSize) || 1;
+      if (state.tablePage > pageCount) state.tablePage = pageCount;
+      const start = (state.tablePage - 1) * state.tablePageSize;
+      const end = start + state.tablePageSize;
+      const rows = state.data.slice().reverse().slice(start, end);
       tbody.innerHTML = rows.map(d => `
       <tr>
         <td>${d.id}</td>
@@ -752,6 +777,12 @@
         <td>${d.km_h.toFixed(2)}</td>
       </tr>`).join('');
       document.getElementById('countTag').textContent = state.data.length + ' lecturas';
+      const pagination = document.getElementById('tablePagination');
+      pagination.innerHTML = `
+        <button class="tab page-btn" data-page="prev" ${state.tablePage <= 1 ? 'disabled' : ''}>‹ Anterior</button>
+        <span class="page-info">Página ${state.tablePage} de ${pageCount}</span>
+        <button class="tab page-btn" data-page="next" ${state.tablePage >= pageCount ? 'disabled' : ''}>Siguiente ›</button>
+      `;
     }
 
     async function fetchData() {
@@ -794,6 +825,7 @@
         if (!Array.isArray(json)) throw new Error('Respuesta inesperada del servidor');
 
         state.data = json.slice().sort((a, b) => a.id - b.id);
+        state.tablePage = 1;
 
         if (state.data.length === 0) {
           showState('<strong>Sin lecturas todavía.</strong>Esperando la primera transmisión del ESP32.', false);
@@ -834,6 +866,17 @@
       state.intervalMs = parseInt(document.getElementById('intervalInput').value, 10);
       restartTimer();
       fetchData();
+    });
+
+    document.getElementById('tablePagination').addEventListener('click', (e) => {
+      const btn = e.target.closest('.page-btn');
+      if (!btn || btn.disabled) return;
+      if (btn.dataset.page === 'prev' && state.tablePage > 1) {
+        state.tablePage--;
+      } else if (btn.dataset.page === 'next') {
+        state.tablePage++;
+      }
+      renderTable();
     });
 
     // Primera carga
