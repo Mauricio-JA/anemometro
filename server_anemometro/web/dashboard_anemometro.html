@@ -382,10 +382,12 @@
       color: var(--muted);
       padding: 0 12px;
     }
+
     .page-btn[disabled] {
       opacity: .35;
       cursor: not-allowed;
     }
+
     .pagination {
       display: flex;
       align-items: center;
@@ -468,6 +470,177 @@
       margin-top: 10px;
     }
 
+    /* ---------- HLI: del viento a la alerta ---------- */
+    .flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .flow-node {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 12px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .flow-node .tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .07em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .flow-node .big {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--paper);
+      line-height: 1.05;
+    }
+
+    .flow-node.ws .big {
+      color: var(--cyan);
+    }
+
+    .flow-node.alerta .big {
+      font-size: 15px;
+      font-weight: 600;
+      font-family: var(--body);
+    }
+
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 24px;
+    }
+
+    .hli-formula {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--muted);
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px;
+      line-height: 1.8;
+      margin-bottom: 18px;
+    }
+
+    .hli-formula .ws-hl {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .hli-formula .note {
+      display: block;
+      margin-top: 8px;
+      opacity: .65;
+      font-size: 12px;
+    }
+
+    .hli-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .slider-field label {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 8px;
+    }
+
+    .slider-field label .sim {
+      color: var(--gold);
+      text-transform: none;
+      letter-spacing: 0;
+      font-style: italic;
+    }
+
+    .slider-field label .val {
+      color: var(--paper);
+      font-size: 13px;
+      text-transform: none;
+    }
+
+    .slider-field input[type=range] {
+      width: 100%;
+      accent-color: var(--gold);
+    }
+
+    .hli-result {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+    }
+
+    .hli-number {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(40px, 6vw, 64px);
+      line-height: 1;
+      color: var(--paper);
+    }
+
+    .hli-number .u {
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--muted);
+      margin-left: 8px;
+    }
+
+    .hli-badge {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 11px 20px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    .hli-badge.safe {
+      background: rgba(159, 191, 160, 0.16);
+      color: var(--sage);
+      border: 1px solid rgba(159, 191, 160, 0.45);
+    }
+
+    .hli-badge.watch {
+      background: rgba(232, 196, 104, 0.16);
+      color: var(--gold);
+      border: 1px solid rgba(232, 196, 104, 0.45);
+    }
+
+    .hli-badge.danger {
+      background: rgba(226, 115, 90, 0.18);
+      color: var(--danger);
+      border: 1px solid rgba(226, 115, 90, 0.5);
+    }
+
     @media (max-width:640px) {
       .hero {
         grid-template-columns: 1fr;
@@ -483,6 +656,20 @@
       }
 
       .drawer {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width:760px) {
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-arrow {
+        transform: rotate(90deg);
+      }
+
+      .hli-controls {
         grid-template-columns: 1fr;
       }
     }
@@ -566,6 +753,65 @@
       <div class="stat v">
         <div class="label">Vel. tangencial · v</div>
         <div class="value" id="vValue">--<span class="u">m/s</span></div>
+      </div>
+    </div>
+
+    <!-- HLI: DEL VIENTO A LA ALERTA -->
+    <div class="card">
+      <div class="card-head">
+        <h2>Del viento a la alerta · Índice de Carga Calórica (HLI)</h2>
+      </div>
+
+      <div class="flow">
+        <div class="flow-node">
+          <span class="tag">Sensor</span>
+          <span class="big">Anemómetro</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node ws">
+          <span class="tag">Viento real · en vivo</span>
+          <span class="big" id="hliWS">-- m/s</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <span class="tag">Fórmula validada</span>
+          <span class="big">HLI</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node alerta">
+          <span class="tag">Resultado</span>
+          <span class="big" id="hliAlertaMini">Esperando datos</span>
+        </div>
+      </div>
+
+      <div class="hli-formula">
+        Si BGT &lt; 25°C&nbsp;&nbsp;HLI = 10.66 + 0.28·HR + 1.3·BGT − <span class="ws-hl">WS</span><br>
+        Si BGT ≥ 25°C&nbsp;&nbsp;HLI = 8.62 + 0.38·HR + 1.55·BGT − 0.5·<span class="ws-hl">WS</span> +
+        e<sup>(2.4−WS)</sup>
+        <span class="note">WS = viento (m/s, tu anemómetro) · HR = humedad relativa (%) · BGT = temp. de globo negro
+          (°C) — Gaughan et al., 2008. Umbral de alerta calibrado para Bos indicus (Nelore), raza dominante en el hato
+          cruceño.</span>
+      </div>
+
+      <div class="hli-controls">
+        <div class="slider-field">
+          <label>Temp. de globo negro (BGT) <span class="sim">simulado</span> <span class="val" id="bgtVal">32
+              °C</span></label>
+          <input type="range" id="bgtInput" min="15" max="45" step="1" value="32">
+        </div>
+        <div class="slider-field">
+          <label>Humedad relativa (HR) <span class="sim">simulado</span> <span class="val" id="rhVal">65
+              %</span></label>
+          <input type="range" id="rhInput" min="20" max="100" step="1" value="65">
+        </div>
+      </div>
+
+      <div class="hli-result">
+        <div>
+          <p class="eyebrow" style="margin-bottom:4px;">HLI calculado</p>
+          <div class="hli-number"><span id="hliValue">--</span><span class="u">índice</span></div>
+        </div>
+        <div id="hliBadge" class="hli-badge safe">Esperando datos</div>
       </div>
     </div>
 
@@ -785,6 +1031,39 @@
       `;
     }
 
+
+
+    function calcularHLI(ws, rh, bgt) {
+      if (bgt < 25) return 10.66 + 0.28 * rh + 1.3 * bgt - ws;
+      return 8.62 + 0.38 * rh + 1.55 * bgt - 0.5 * ws + Math.exp(2.4 - ws);
+    }
+
+    function actualizarHLI() {
+      if (state.data.length === 0) return;
+      const ws = state.data[state.data.length - 1].v_real_m_s;
+      const bgt = parseFloat(document.getElementById('bgtInput').value);
+      const rh = parseFloat(document.getElementById('rhInput').value);
+
+      document.getElementById('bgtVal').textContent = bgt + ' °C';
+      document.getElementById('rhVal').textContent = rh + ' %';
+      document.getElementById('hliWS').textContent = ws.toFixed(2) + ' m/s';
+
+      const hli = calcularHLI(ws, rh, bgt);
+      document.getElementById('hliValue').textContent = hli.toFixed(1);
+
+      let kind, texto;
+      if (hli < 75) { kind = 'safe'; texto = 'Zona de confort'; }
+      else if (hli < 96) { kind = 'watch'; texto = 'Zona de atención'; }
+      else { kind = 'danger'; texto = 'Alerta de estrés térmico'; }
+
+      const badge = document.getElementById('hliBadge');
+      badge.className = 'hli-badge ' + kind;
+      badge.textContent = texto + ' · HLI ' + hli.toFixed(1);
+      document.getElementById('hliAlertaMini').textContent = texto;
+
+
+    }
+
     async function fetchData() {
       setStatus('loading', 'Actualizando…');
       try {
@@ -838,6 +1117,7 @@
         renderHero(state.data[state.data.length - 1]);
         renderChart();
         renderTable();
+        actualizarHLI();
         setStatus('live', 'En vivo');
       } catch (err) {
         const isCors = err instanceof TypeError;
@@ -878,6 +1158,9 @@
       }
       renderTable();
     });
+
+    document.getElementById('bgtInput').addEventListener('input', actualizarHLI);
+    document.getElementById('rhInput').addEventListener('input', actualizarHLI);
 
     // Primera carga
     fetchData();
