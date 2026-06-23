@@ -246,6 +246,10 @@
       opacity: 0.45;
     }
 
+    .rotor.calmo {
+      animation-play-state: paused;
+    }
+
     @keyframes spin {
       to {
         transform: rotate(360deg);
@@ -1173,13 +1177,23 @@
       document.getElementById('presValue').innerHTML = fmtOrDash(latest.presion_hpa, 1) + '<span class="u">hPa</span>';
       document.getElementById('lastUpdated').textContent = 'Última lectura · ' + timePart(latest.recibido_en) + ' · ID #' + latest.id;
 
-      const duration = Math.min(8, Math.max(0.3, latest.periodo_s));
-      rotorGroup.style.setProperty('--spin-duration', duration + 's');
+      if (latest.km_h < 0.05) {
+        // Viento en calma real (el firmware manda periodo_s=0 cuando el anemómetro está
+        // quieto). Sin este chequeo, Math.max(0.3, 0) interpreta "período 0" como el giro
+        // MÁS RÁPIDO posible — exactamente al revés de lo que significa. Pausamos sin atenuar
+        // opacidad porque el dato sigue siendo en vivo, no es una desconexión.
+        rotorGroup.classList.add('calmo');
+      } else {
+        rotorGroup.classList.remove('calmo');
+        const duration = Math.min(8, Math.max(0.3, latest.periodo_s));
+        rotorGroup.style.setProperty('--spin-duration', duration + 's');
+      }
     }
 
     // El ESP32 no envió nada reciente: la velocidad real ahora es 0, no "la última que se vio".
     // Mostrar el dato viejo como si fuera actual sería el bug que estamos arreglando.
     function renderHeroOffline(latest) {
+      rotorGroup.classList.remove('calmo');
       rotorGroup.classList.add('stopped');
       document.getElementById('kmhValue').textContent = '0.00';
       document.getElementById('tValue').innerHTML = '0.0000<span class="u">s</span>';
