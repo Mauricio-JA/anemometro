@@ -133,6 +133,11 @@
       box-shadow: 0 0 0 4px rgba(232, 196, 104, 0.18);
     }
 
+    .dot.offline {
+      background: var(--danger);
+      box-shadow: 0 0 0 4px rgba(226, 115, 90, 0.18);
+    }
+
     .icon-btn {
       width: 38px;
       height: 38px;
@@ -234,6 +239,11 @@
     .rotor {
       transform-origin: 70px 70px;
       animation: spin var(--spin-duration, 2.2s) linear infinite;
+    }
+
+    .rotor.stopped {
+      animation-play-state: paused;
+      opacity: 0.45;
     }
 
     @keyframes spin {
@@ -972,6 +982,7 @@
       url: document.getElementById('urlInput').value,
       apiKey: '',
       intervalMs: 5000,
+      staleMs: 15000, // si la última lectura tiene más de esto, el ESP32 se considera desconectado
       timer: null,
       metric: 'km_h',
       timeRange: 'all',
@@ -1102,6 +1113,7 @@
     }
 
     function renderHero(latest) {
+      rotorGroup.classList.remove('stopped');
       document.getElementById('kmhValue').textContent = latest.km_h.toFixed(2);
       document.getElementById('tValue').innerHTML = latest.periodo_s.toFixed(4) + '<span class="u">s</span>';
       document.getElementById('omegaValue').innerHTML = latest.omega_rad_s.toFixed(2) + '<span class="u">rad/s</span>';
@@ -1110,6 +1122,38 @@
 
       const duration = Math.min(8, Math.max(0.3, latest.periodo_s));
       rotorGroup.style.setProperty('--spin-duration', duration + 's');
+    }
+
+    // El ESP32 no envió nada reciente: la velocidad real ahora es 0, no "la última que se vio".
+    // Mostrar el dato viejo como si fuera actual sería el bug que estamos arreglando.
+    function renderHeroOffline(latest) {
+      rotorGroup.classList.add('stopped');
+      document.getElementById('kmhValue').textContent = '0.00';
+      document.getElementById('tValue').innerHTML = '0.0000<span class="u">s</span>';
+      document.getElementById('omegaValue').innerHTML = '0.00<span class="u">rad/s</span>';
+      document.getElementById('vValue').innerHTML = '0.00<span class="u">m/s</span>';
+
+      document.getElementById('lastUpdated').textContent = latest
+        ? 'Sin transmitir desde · ' + timePart(latest.recibido_en) + ' · ID #' + latest.id
+        : 'Esperando la primera transmisión del ESP32';
+
+      // El HLI no debe alertar con viento de hace horas: vuelve a estado de espera.
+      document.querySelectorAll('.cow-state').forEach(el => el.classList.remove('active'));
+      document.getElementById('cowIdle').classList.add('active');
+      document.getElementById('hliValue').textContent = '--';
+      document.getElementById('hliWS').textContent = '-- m/s';
+      const badge = document.getElementById('hliBadge');
+      badge.className = 'hli-badge idle';
+      badge.textContent = 'Esperando datos';
+      document.getElementById('hliAlertaMini').textContent = 'Esperando datos';
+    }
+
+    function formatAge(ms) {
+      const min = Math.round(ms / 60000);
+      if (min < 60) return min + ' min';
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      return h + 'h' + (m > 0 ? ' ' + m + 'min' : '');
     }
 
     function renderTable() {
@@ -1215,20 +1259,33 @@
 
         state.data = json.slice().sort((a, b) => a.id - b.id);
         state.tablePage = 1;
+        renderChart();
+        renderTable();
 
         if (state.data.length === 0) {
           showState('<strong>Sin lecturas todavía.</strong>Esperando la primera transmisión del ESP32.', false);
           setStatus('live', 'Conectado · sin datos');
-          document.getElementById('countTag').textContent = '0 lecturas';
+          renderHeroOffline(null);
           return;
         }
 
-        hideState();
-        renderHero(state.data[state.data.length - 1]);
-        renderChart();
-        renderTable();
-        actualizarHLI();
-        setStatus('live', 'En vivo');
+        const latest = state.data[state.data.length - 1];
+        const edadMs = Date.now() - new Date(latest.recibido_en).getTime();
+
+        if (edadMs > state.staleMs) {
+          renderHeroOffline(latest);
+          setStatus('offline', 'ESP32 desconectado · sin transmitir');
+          showState(
+            '<strong>ESP32 desconectado.</strong>Última transmisión real: ' + timePart(latest.recibido_en) +
+            ' · ID #' + latest.id + '. No llegan lecturas nuevas hace ' + formatAge(edadMs) + '.',
+            true
+          );
+        } else {
+          hideState();
+          renderHero(latest);
+          actualizarHLI();
+          setStatus('live', 'En vivo');
+        }
       } catch (err) {
         const isCors = err instanceof TypeError;
         const msg = isCors
