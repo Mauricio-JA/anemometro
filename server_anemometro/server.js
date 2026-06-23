@@ -34,9 +34,17 @@ async function initDB() {
         omega_rad_s REAL,
         v_real_m_s REAL,
         km_h REAL,
+        temperatura_c REAL,
+        humedad_pct REAL,
+        presion_hpa REAL,
         recibido_en TIMESTAMPTZ DEFAULT NOW()
       )
     `);
+    // Migracion segura para la base ya existente: agrega las columnas si todavia no estan.
+    // No borra ni toca filas existentes; las lecturas viejas quedan con estos campos en NULL.
+    await client.query(`ALTER TABLE lecturas ADD COLUMN IF NOT EXISTS temperatura_c REAL`);
+    await client.query(`ALTER TABLE lecturas ADD COLUMN IF NOT EXISTS humedad_pct REAL`);
+    await client.query(`ALTER TABLE lecturas ADD COLUMN IF NOT EXISTS presion_hpa REAL`);
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_lecturas_recibido_en ON lecturas (recibido_en)
     `);
@@ -70,7 +78,7 @@ app.get('/', (req, res) => {
 //  POST /api/lecturas  — el ESP32 envia una nueva lectura
 // ============================================================
 app.post('/api/lecturas', verificarApiKey, async (req, res) => {
-  const { periodo_s, omega_rad_s, v_real_m_s, km_h } = req.body;
+  const { periodo_s, omega_rad_s, v_real_m_s, km_h, temperatura_c, humedad_pct, presion_hpa } = req.body;
 
   const campos = { periodo_s, omega_rad_s, v_real_m_s, km_h };
   const faltante = Object.entries(campos).find(([, v]) => v === undefined);
@@ -81,9 +89,15 @@ app.post('/api/lecturas', verificarApiKey, async (req, res) => {
     });
   }
 
+  // temperatura_c, humedad_pct y presion_hpa son opcionales: si un ESP32 viejo
+  // (sin BME680) sigue mandando datos, no se rompe — esos campos quedan en NULL.
   await pool.query(
-    'INSERT INTO lecturas (periodo_s, omega_rad_s, v_real_m_s, km_h) VALUES ($1, $2, $3, $4)',
-    [periodo_s, omega_rad_s, v_real_m_s, km_h]
+    `INSERT INTO lecturas (periodo_s, omega_rad_s, v_real_m_s, km_h, temperatura_c, humedad_pct, presion_hpa)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [
+      periodo_s, omega_rad_s, v_real_m_s, km_h,
+      temperatura_c ?? null, humedad_pct ?? null, presion_hpa ?? null,
+    ]
   );
   res.status(201).json({ ok: true });
 });
