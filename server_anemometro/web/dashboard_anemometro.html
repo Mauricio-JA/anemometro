@@ -834,16 +834,12 @@
       </div>
     </div>
 
-    <!-- STATS AMBIENTALES (BME680) -->
-    <p class="eyebrow" style="margin: 4px 0 10px;">Sensor ambiental · BME680</p>
-    <div class="stats">
+    <!-- STATS AMBIENTALES (BMP180) -->
+    <p class="eyebrow" style="margin: 4px 0 10px;">Sensor ambiental · BMP180</p>
+    <div class="stats" style="grid-template-columns: repeat(2, 1fr);">
       <div class="stat temp">
         <div class="label">Temperatura</div>
         <div class="value" id="tempValue">--<span class="u">°C</span></div>
-      </div>
-      <div class="stat hum">
-        <div class="label">Humedad relativa</div>
-        <div class="value" id="humValue">--<span class="u">%</span></div>
       </div>
       <div class="stat pres">
         <div class="label">Presión atmosférica</div>
@@ -883,11 +879,12 @@
         Si BGT &lt; 25°C&nbsp;&nbsp;HLI = 10.66 + 0.28·HR + 1.3·BGT − <span class="ws-hl">WS</span><br>
         Si BGT ≥ 25°C&nbsp;&nbsp;HLI = 8.62 + 0.38·HR + 1.55·BGT − 0.5·<span class="ws-hl">WS</span> +
         e<sup>(2.4−WS)</sup>
-        <span class="note">WS = viento real (tu anemómetro) · HR = humedad real (tu BME680) · BGT = temp. de
-          globo negro (°C), ingreso manual — el proyecto todavía no tiene sensor de globo negro, así que este
-          valor lo escribe quien opera el panel. Fórmula: Gaughan et al., 2008. Umbral oficial de ganancia de
-          calor para Bos indicus 100% (Nelore): HLI 96. La franja 75–96 es un margen de alerta temprana propio
-          del proyecto, antes de alcanzar el umbral validado por el paper.</span>
+        <span class="note">WS = viento real (tu anemómetro) · HR = humedad relativa (%), ingreso manual ·
+          BGT = temp. de globo negro (°C), ingreso manual — el sensor instalado es un BMP180 (confirmado por
+          su chip ID), que mide temperatura y presión, pero no humedad ni globo negro. Ambos valores los
+          escribe quien opera el panel. Fórmula: Gaughan et al., 2008. Umbral oficial de ganancia de calor
+          para Bos indicus 100% (Nelore): HLI 96. La franja 75–96 es un margen de alerta temprana propio del
+          proyecto, antes de alcanzar el umbral validado por el paper.</span>
       </div>
 
       <div class="hli-controls">
@@ -897,8 +894,9 @@
           <input type="range" id="bgtInput" min="15" max="45" step="1" value="32">
         </div>
         <div class="slider-field">
-          <label>Humedad relativa (HR) <span class="real">real · BME680</span> <span class="val" id="rhVal">--
+          <label>Humedad relativa (HR) <span class="sim">manual</span> <span class="val" id="rhVal">65
               %</span></label>
+          <input type="range" id="rhInput" min="20" max="100" step="1" value="65">
         </div>
       </div>
 
@@ -996,7 +994,6 @@
           <button class="tab" data-metric="periodo_s">T (s)</button>
           <button class="tab" data-metric="v_real_m_s">v (m/s)</button>
           <button class="tab" data-metric="temperatura_c">Temp °C</button>
-          <button class="tab" data-metric="humedad_pct">Hum %</button>
           <button class="tab" data-metric="presion_hpa">Presión hPa</button>
         </div>
         <div class="tabs" id="timeFilterTabs"></div>
@@ -1023,7 +1020,6 @@
               <th>v (m/s)</th>
               <th>km/h</th>
               <th>Temp °C</th>
-              <th>Hum %</th>
               <th>Presión hPa</th>
             </tr>
           </thead>
@@ -1057,7 +1053,6 @@
       periodo_s: { label: 'T (s)', color: 'var(--sage)', decimals: 4 },
       v_real_m_s: { label: 'v (m/s)', color: 'var(--danger)', decimals: 2 },
       temperatura_c: { label: 'Temperatura (°C)', color: 'var(--danger)', decimals: 1 },
-      humedad_pct: { label: 'Humedad (%)', color: 'var(--cyan)', decimals: 1 },
       presion_hpa: { label: 'Presión (hPa)', color: 'var(--gold)', decimals: 1 },
     };
 
@@ -1199,7 +1194,6 @@
       document.getElementById('omegaValue').innerHTML = latest.omega_rad_s.toFixed(2) + '<span class="u">rad/s</span>';
       document.getElementById('vValue').innerHTML = latest.v_real_m_s.toFixed(2) + '<span class="u">m/s</span>';
       document.getElementById('tempValue').innerHTML = fmtOrDash(latest.temperatura_c, 1) + '<span class="u">°C</span>';
-      document.getElementById('humValue').innerHTML = fmtOrDash(latest.humedad_pct, 1) + '<span class="u">%</span>';
       document.getElementById('presValue').innerHTML = fmtOrDash(latest.presion_hpa, 1) + '<span class="u">hPa</span>';
       document.getElementById('lastUpdated').textContent = 'Última lectura · ' + timePart(latest.recibido_en) + ' · ID #' + latest.id;
 
@@ -1226,7 +1220,6 @@
       document.getElementById('omegaValue').innerHTML = '0.00<span class="u">rad/s</span>';
       document.getElementById('vValue').innerHTML = '0.00<span class="u">m/s</span>';
       document.getElementById('tempValue').innerHTML = '--<span class="u">°C</span>';
-      document.getElementById('humValue').innerHTML = '--<span class="u">%</span>';
       document.getElementById('presValue').innerHTML = '--<span class="u">hPa</span>';
 
       document.getElementById('lastUpdated').textContent = latest
@@ -1269,7 +1262,6 @@
         <td>${d.v_real_m_s.toFixed(2)}</td>
         <td>${d.km_h.toFixed(2)}</td>
         <td>${fmtOrDash(d.temperatura_c, 1)}</td>
-        <td>${fmtOrDash(d.humedad_pct, 1)}</td>
         <td>${fmtOrDash(d.presion_hpa, 1)}</td>
       </tr>`).join('');
       document.getElementById('countTag').textContent = state.data.length + ' lecturas';
@@ -1298,24 +1290,10 @@
       const bgt = parseFloat(document.getElementById('bgtInput').value);
       document.getElementById('bgtVal').textContent = bgt + ' °C';
 
-      // HR real del BME680: promedio de las lecturas recientes que sí traen ese campo
-      // (las de antes del sensor, o si está desconectado, vienen en null y se descartan).
-      const conHumedad = recientes.filter(d => d.humedad_pct !== null && d.humedad_pct !== undefined);
-
-      if (conHumedad.length === 0) {
-        document.getElementById('rhVal').textContent = '-- %';
-        document.getElementById('hliValue').textContent = '--';
-        document.querySelectorAll('.cow-state').forEach(el => el.classList.remove('active'));
-        document.getElementById('cowIdle').classList.add('active');
-        const badge = document.getElementById('hliBadge');
-        badge.className = 'hli-badge idle';
-        badge.textContent = 'Esperando humedad real (BME680)';
-        document.getElementById('hliAlertaMini').textContent = 'Esperando datos';
-        return;
-      }
-
-      const rh = conHumedad.reduce((sum, d) => sum + d.humedad_pct, 0) / conHumedad.length;
-      document.getElementById('rhVal').textContent = rh.toFixed(1) + ' %';
+      // El sensor real es un BMP180: no mide humedad. HR vuelve a ser un valor manual,
+      // igual que BGT, hasta que se sume un sensor que sí la mida.
+      const rh = parseFloat(document.getElementById('rhInput').value);
+      document.getElementById('rhVal').textContent = rh + ' %';
 
       const hli = calcularHLI(ws, rh, bgt);
       document.getElementById('hliValue').textContent = hli.toFixed(1);
@@ -1444,6 +1422,7 @@
     });
 
     document.getElementById('bgtInput').addEventListener('input', actualizarHLI);
+    document.getElementById('rhInput').addEventListener('input', actualizarHLI);
 
     // Primera carga
     fetchData();
