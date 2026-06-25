@@ -382,6 +382,7 @@
 
     .tabs {
       display: flex;
+      flex-wrap: wrap;
       gap: 6px;
     }
 
@@ -424,6 +425,17 @@
 
     canvas {
       max-height: 280px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 280px;
+    }
+
+    @media (max-width:640px) {
+      .chart-wrap {
+        height: 220px;
+      }
     }
 
     /* ---------- Table ---------- */
@@ -989,7 +1001,9 @@
         </div>
         <div class="tabs" id="timeFilterTabs"></div>
       </div>
-      <canvas id="chart"></canvas>
+      <div class="chart-wrap">
+        <canvas id="chart"></canvas>
+      </div>
     </div>
 
     <!-- TABLE -->
@@ -1102,6 +1116,7 @@
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         animation: { duration: 250 },
         scales: {
           x: { ticks: { color: resolveVar('--muted'), font: { family: 'IBM Plex Mono', size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
@@ -1154,10 +1169,21 @@
       return (val === null || val === undefined) ? '—' : val.toFixed(decimals);
     }
 
+    // Etiqueta corta para el eje X del gráfico — la fecha completa con segundos
+    // se comía toda la altura disponible al rotar en pantallas angostas.
+    function chartLabelPart(recibidoEn) {
+      const d = new Date(recibidoEn);
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mi = String(d.getMinutes()).padStart(2, '0');
+      return `${dd}/${mm} ${hh}:${mi}`;
+    }
+
     function renderChart() {
       const meta = METRIC_META[state.metric];
       const recent = state.timeRange === 'all' ? state.data.slice(-50) : state.data;
-      chart.data.labels = recent.map(d => timePart(d.recibido_en));
+      chart.data.labels = recent.map(d => chartLabelPart(d.recibido_en));
       chart.data.datasets[0].label = meta.label;
       chart.data.datasets[0].data = recent.map(d => d[state.metric]);
       const resolved = resolveVar(meta.color.replace('var(', '').replace(')', ''));
